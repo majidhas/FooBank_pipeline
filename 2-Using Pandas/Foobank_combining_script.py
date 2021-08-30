@@ -65,7 +65,7 @@ for i,element in enumerate(loans_df.webvisit_id):
     if type(element) == int:
         temp_df2 = visits_df[visits_df.id == element].reset_index()     
         for index in range(len(temp_df2)):
-            temp_str += temp_df2.campaign_name.iloc[index] + ',' + temp_df2.referrer.iloc[index]+"-"
+            temp_str += temp_df2.campaign_name.iloc[index] + '_' + temp_df2.referrer.iloc[index]+","
         
     cmpgn_ref_series.iloc[i] = temp_str
 
