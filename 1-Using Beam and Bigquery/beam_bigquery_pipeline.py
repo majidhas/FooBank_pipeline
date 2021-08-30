@@ -47,8 +47,8 @@ cleaning_argv = [
     '--project={0}'.format(project),
     '--job_name=cleaningpipeline',
     '--save_main_session',
-    '--staging_location=gs://{0}/rocker_output/staging/'.format(bucket),
-    '--temp_location=gs://{0}/rocker_output/staging/'.format(bucket),
+    '--staging_location=gs://{0}/foobank_output/staging/'.format(bucket),
+    '--temp_location=gs://{0}/foobank_output/staging/'.format(bucket),
     '--runner={0}'.format(runner),
     '--region=us-central1',                                                                     ## ------to be defined by the user------##
     '--max_num_workers=5'
@@ -65,7 +65,8 @@ def stripper(text):
   else:
       return text
 
-cleaned_loans_url = f'gs://{bucket}/rocker_output/medial_output_{today_date}.csv'
+cleaned_loans_url = f'gs://{bucket}/foobank_output/medial_output_{today_date}.csv'
+
 
 loans = (cleaning_pipeline  |  'LoansReadFromStorage' >> beam.io.ReadFromText(loans_source_url)
                             |  'RemoveParentheses' >> beam.Regex.replace_all('[()]', '')
@@ -73,7 +74,7 @@ loans = (cleaning_pipeline  |  'LoansReadFromStorage' >> beam.io.ReadFromText(lo
                             |  'WriteToStorage' >> beam.io.WriteToText(cleaned_loans_url[:-4] ,file_name_suffix='.csv',shard_name_template=''))
 
 run_p= cleaning_pipeline.run().wait_until_finish()
-print(run_p)
+print('Beam pipeline is ' + run_p)
 
 #buffering for any latency
 time.sleep(20)
@@ -98,7 +99,7 @@ client = bigquery.Client()
 
 # ---------BigQuery job for making loans table-----------
 
-loans_table_id = f"rocker-assignment.rocker_pipeline.loans_{today_date}"
+loans_table_id = f"rocker-assignment.foobank_pipeline.loans_{today_date}"
 
 job_config = bigquery.LoadJobConfig(
     schema=[
@@ -136,7 +137,7 @@ time.sleep(10)
 
 # --------BigQuery job for making visits table-----------
 
-visits_table_id = f"rocker-assignment.rocker_pipeline.visits_{today_date}"
+visits_table_id = f"rocker-assignment.foobank_pipeline.visits_{today_date}"
 
 job_config = bigquery.LoadJobConfig(
     autodetect = True,
@@ -161,7 +162,7 @@ time.sleep(10)
 
 # -------BigQuery job for making customers table----------
 
-customers_table_id = f"rocker-assignment.rocker_pipeline.customers_{today_date}"
+customers_table_id = f"rocker-assignment.foobank_pipeline.customers_{today_date}"
 
 job_config = bigquery.LoadJobConfig(
     autodetect = True,
@@ -190,7 +191,7 @@ time.sleep(10)
 the_date = re.sub('-','_',str(today_date))
 
 query = f"""
-    CREATE TABLE rocker_pipeline.combined_loan_visit_customer_{the_date}
+    CREATE TABLE foobank_pipeline.combined_loan_visit_customer_{the_date}
         OPTIONS( description="Top ten words per Shakespeare corpus") 
     AS
     
@@ -212,15 +213,15 @@ query = f"""
                              c.ssn,
                              c.gender,
                              c.id cid,
-                             CONCAT(v.campaign_name, ',', v.referrer) AS campaign_referrer_con
+                             CONCAT(v.campaign_name, '_', v.referrer) AS campaign_referrer_con
                          FROM
-                             `rocker-assignment.rocker_pipeline.loans_*` l
+                             `rocker-assignment.foobank_pipeline.loans_*` l
                              LEFT JOIN
-                             `rocker-assignment.rocker_pipeline.visits_*` v
+                             `rocker-assignment.foobank_pipeline.visits_*` v
                          ON
                              l.webvisit_id = v.id
                          LEFT JOIN
-                             `rocker-assignment.rocker_pipeline.customers_*` c
+                             `rocker-assignment.foobank_pipeline.customers_*` c
                          ON
                              l.user_id = c.id  )
 
@@ -242,7 +243,7 @@ query = f"""
              ssn,
              gender,
              cid,
-             STRING_AGG(campaign_referrer_con, " - ") AS campaign_referrer
+             STRING_AGG(campaign_referrer_con, " , ") AS campaign_referrer
          FROM
              main_query
          GROUP BY
@@ -280,8 +281,8 @@ time.sleep(10)
 
 #  ---------- Creaing Bigquery API request for exporting final CSV file-------------
 
-final_csv_output_path = f'gs://{bucket}/rocker_output/combined_loan_visit_customer_data_{today_date}.csv'
-dataset_id = "rocker_pipeline"                                                                  ## ------to be defined by the user------##
+final_csv_output_path = f'gs://{bucket}/foobank_output/combined_loan_visit_customer_data_{today_date}.csv'
+dataset_id = "foobank_pipeline"                                                                  ## ------to be defined by the user------##
 table_id = f"combined_loan_visit_customer_{the_date}" 
 
 destination_uri = final_csv_output_path
