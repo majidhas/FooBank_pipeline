@@ -1,6 +1,6 @@
 
 * The script code is for storing locally, but can accept GCS bucket for storing the file
-* The script read all csv file and turn them into pandas Dataframes
+* The script reads all csv file and turn them into pandas Dataframes
 * The loan csv files are concatenated vertically and parenthesss and comma were cleaned from the webvisit_id values
 * The campaign and referrer columns were concatenated and aggregated for each loan and then assigned to right of the loans table
 * The previous dataframe was joined with customer dataframe using pandas merge method
