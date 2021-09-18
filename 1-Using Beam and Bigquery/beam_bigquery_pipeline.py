@@ -56,7 +56,7 @@ cleaning_argv = [
 
 cleaning_pipeline = beam.Pipeline(argv=cleaning_argv)
 
-#fn for solving the problem of webvisit_id empty field and csv file firts rows
+#fn for solving the problem of webvisit_id empty field and csv file first rows
 def stripper(text):
   if text.count(',') == 9:
     return text.rstrip(',')
@@ -92,7 +92,7 @@ time.sleep(20)
 
 
 # ----------------------------------------------------------------------------
-# ------------------Construct BigQuery jobs for making tables-----------------
+# ------------------Constructing BigQuery jobs for making tables-----------------
 # ----------------------------------------------------------------------------
 
 client = bigquery.Client()
